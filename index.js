@@ -1,15 +1,30 @@
+require ('dotenv').config();
 const express = require('express');
-const { resolve } = require('path');
+const mongoose = require ('mongoose');
 
 const app = express();
-const port = 3010;
+app.use(express.json());
 
-app.use(express.static('static'));
+const PORT = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGO_URI;
 
-app.get('/', (req, res) => {
-  res.sendFile(resolve(__dirname, 'pages/index.html'));
+app.get ('/', (req, res) => {
+    res.send ({status : 'ok' , message : 'student Project Tracker backend Running'});
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
-});
+if (!MONGO_URI) {
+    console.error ('MONGO_URI is not defined in environment variables');
+    process.exit (1);
+}
+
+mongoose  .connect (MONGO_URI, { useNewUrlParser : true, useUnifiedTopology : true })
+          .then (() => {
+              console.log ('Connected to MongoDB');
+              app.listen (PORT, () => {
+                  console.log (`Server is running on port ${PORT}`);
+              });
+          })
+          .catch ((err) => {
+              console.error ('Failed to connect to MongoDB', err);
+              process.exit (1);
+          });
